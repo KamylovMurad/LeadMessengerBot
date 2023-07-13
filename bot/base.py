@@ -48,12 +48,18 @@ async def create_sub_user_table(self):
 
 async def get_user_id(self, chat_id):
         async with self.pool.acquire() as conn:
-            user_id = await conn.fetchval(f"SELECT id FROM users WHERE user_id = '{chat_id}'")
+            user_id = await conn.fetchval(
+              f"SELECT id FROM "
+              f"users WHERE user_id = '{chat_id}'"
+              )
             return user_id
 
 async def set_user_id(self, user_id):
         async with self.pool.acquire() as conn:
-            await conn.execute(f"INSERT INTO users (user_id, agreed) VALUES ('{user_id}', TRUE)")
+            await conn.execute(
+              f"INSERT INTO users (user_id, agreed) "
+              f"VALUES ('{user_id}', TRUE)"
+            )
 
 async def set_user_info(self, i_user_id, i_name, i_last_name, i_tel):
         async with self.pool.acquire() as conn:
@@ -92,7 +98,10 @@ async def get_users_list_to_distribute_for_all(self):
 
 async def user_info_response(self, user):
         async with self.pool.acquire() as conn:
-            elems = await conn.fetchrow(f"SELECT name, last_name, tel_number, Blocked FROM users WHERE user_id = '{user}' ")
+            elems = await conn.fetchrow(
+              f"SELECT name, last_name, tel_number, Blocked "
+              f"FROM users WHERE user_id = '{user}' "
+            )
             return elems
 
 async def update_name(self, i_user_id, i_name):
@@ -148,10 +157,15 @@ async def update_sub_true(self, i_user_id):
               f"Маркетолог = TRUE,"\
               f"Финансист = TRUE "
 
-            insert_query = f"user_id, Астролог, Психолог, Стилист, Юрист, Нутрициолог, "\
-                           f"Косметолог, Врач, Тренер, Дизайнер, Маркетолог, Финансист"
+            insert_query = f"user_id, Астролог, Психолог, " \
+                           f"Стилист, Юрист, Нутрициолог, "\
+                           f"Косметолог, Врач, Тренер, " \
+                           f"Дизайнер, Маркетолог, Финансист"
 
-            val = f"'{i_user_id}', TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE"
+            val = f"'{i_user_id}', TRUE, TRUE, " \
+                  f"TRUE, TRUE, TRUE, " \
+                  f"TRUE, TRUE,TRUE, " \
+                  f"TRUE, TRUE, TRUE"
 
             query = f"INSERT INTO users_sub ({insert_query}) VALUES ({val})" \
                     f" ON CONFLICT (user_id) DO UPDATE SET {update_query}"
@@ -181,7 +195,10 @@ async def unblock_user(self, i_user_id):
 
 async def get_status(self, i_user_id):
         async with self.pool.acquire() as conn:
-            elem = await conn.fetchrow(f"SELECT Blocked FROM users WHERE user_id = '{i_user_id}' ")
+            elem = await conn.fetchrow(
+              f"SELECT Blocked FROM users"
+              f"WHERE user_id = '{i_user_id}' "
+            )
             if elem is not None:
                 return elem[0]
             else:
@@ -189,7 +206,10 @@ async def get_status(self, i_user_id):
 
 async def delete(self, i_user_id):
         async with self.pool.acquire() as conn:
-            await conn.execute(f"DELETE FROM users_sub WHERE user_id ='{i_user_id}' ")
+            await conn.execute(
+              f"DELETE FROM users_sub "
+              f"WHERE user_id ='{i_user_id}' "
+            )
 
 async def cout_all(self):
         async with self.pool.acquire() as conn:
@@ -198,5 +218,9 @@ async def cout_all(self):
 
 async def cout_category(self, category):
         async with self.pool.acquire() as conn:
-            elem = await conn.fetchrow(f"SELECT COUNT(*) FROM users_sub WHERE {category} = true;")
+            elem = await conn.fetchrow(
+              f"SELECT COUNT(*) "
+              f"FROM users_sub "
+              f"WHERE {category} = true;"
+            )
             return elem[0]

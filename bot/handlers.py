@@ -1,8 +1,10 @@
 import asyncio
 import random
-from bot.distribute_logic import send_message_async, send_message_admin, delete_button, bot_send_message
-from aiogram.utils.exceptions import  InvalidQueryID
-from asyncpg.exceptions import InvalidTextRepresentationError, NumericValueOutOfRangeError
+from bot.distribute_logic import send_message_async, \
+    send_message_admin, delete_button, bot_send_message
+from aiogram.utils.exceptions import InvalidQueryID
+from asyncpg.exceptions import InvalidTextRepresentationError, \
+    NumericValueOutOfRangeError
 from bot.crm_file import create_lead
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -41,7 +43,11 @@ async def process_policy_confirmation(callback_query: types.CallbackQuery, state
         )
         keyboard = await button_aggree(text="Ввести данные", call="form")
         await UserStates.get_form.set()
-        await bot_send_message(user_id, 'Для продолжения укажите Ваши данные.', reply_markup=keyboard)
+        await bot_send_message(
+            user_id,
+            'Для продолжения укажите Ваши данные.',
+            reply_markup=keyboard
+        )
 
 
 async def form_start(callback_query: types.CallbackQuery, state: FSMContext):
@@ -65,15 +71,21 @@ async def get_last_name(message: types.Message, state: FSMContext):
 async def get_telephone_number(message: types.Message, state: FSMContext):
     context_data = await state.get_data()
     await state.finish()
-    name, last_name, tel, user_id = context_data.get('name'), context_data.get('last_name'), message.text, message.from_user.id
+    name, last_name, tel, user_id = context_data.get('name'), \
+        context_data.get('last_name'), \
+        message.text, \
+        message.from_user.id
     await db.set_user_info(user_id, name, last_name, tel)
     keyboard = await get_nums()
     await UserStates.vacancy.set()
     await message.answer(
-        'Сколько категорий Вас интересует? Можно выбрать от 1 до 6 или все категории.'
-        '\nАстрологи\nПсихологи\nСтилисты\nЮристы\nНутрициологи\nКосметологи\nВрачи\n'
+        'Сколько категорий Вас интересует? '
+        'Можно выбрать от 1 до 6 или все категории.'
+        '\nАстрологи\nПсихологи\nСтилисты\nЮристы'
+        '\nНутрициологи\nКосметологи\nВрачи\n'
         'Тренеры\nДизайнеры\nФинансисты\nМаркетологи',
-        reply_markup=keyboard)
+        reply_markup=keyboard
+    )
 
 
 async def all_categories(call: types.CallbackQuery, state: FSMContext):
@@ -83,7 +95,8 @@ async def all_categories(call: types.CallbackQuery, state: FSMContext):
     await db.update_sub_true(user_id)
     await bot_send_message(user_id,
                            f'Вы подписались на рассылку по всем категориям.\n'
-                           f'Для изменения личных данных или для смены рассылки, введите /settings.'
+                           f'Для изменения личных данных'
+                           f'или для смены рассылки, введите /settings.'
                            )
 
 
@@ -93,7 +106,11 @@ async def categories_num(callback_query: types.CallbackQuery, state: FSMContext)
     await state.update_data(category=set())
     keyboard = await get_filters()
     await UserStates.categories.set()
-    await bot_send_message(callback_query.from_user.id, 'Выберите интересующие категории', reply_markup=keyboard)
+    await bot_send_message(
+        callback_query.from_user.id,
+        'Выберите интересующие категории',
+        reply_markup=keyboard
+    )
 
 
 async def choose_categories(callback_query: types.CallbackQuery, state: FSMContext):
@@ -105,22 +122,32 @@ async def choose_categories(callback_query: types.CallbackQuery, state: FSMConte
         category_list.add(text)
         nums = int(data.get('nums'))
         nums -= 1
-        await bot_send_message(user_id, f'Выбрана категория {text}, выберите еще {nums}')
+        await bot_send_message(
+            user_id,
+            f'Выбрана категория {text}, выберите еще {nums}'
+        )
         if nums == 0:
             await state.finish()
             await delete_button(callback_query)
             await db.set_categories(category_list, user_id)
-            await bot_send_message(user_id,
-                                   f'Вы подписались на рассылку по выбранным категориям.\n'
-                                   f'Для изменения личных данных или для смены рассылки, введите /settings.'
-                                   )
+            await bot_send_message(
+                user_id,
+                f'Вы подписались на рассылку '
+                f'по выбранным категориям.\n'
+                f'Для изменения личных данных '
+                f'или для смены рассылки, введите /settings.'
+                )
             return
         await state.update_data(nums=nums)
         await state.update_data(category=category_list)
     except Exception:
         await state.finish()
-        await bot_send_message(user_id, 'Возникла ошибка, выбрано некорректное значение\n'
-                                        'Для изменения личных данных или для смены рассылки, введите /settings.')
+        await bot_send_message(
+            user_id,
+            'Возникла ошибка, выбрано некорректное значение\n'
+            'Для изменения личных данных '
+            'или для смены рассылки, введите /settings.'
+        )
 
 
 async def distribute(message: types.Message, state: FSMContext):
@@ -130,10 +157,19 @@ async def distribute(message: types.Message, state: FSMContext):
 async def get_category(message: types.Message, state: FSMContext):
     await state.update_data(text=message.text)
     keyboard_choosen = await get_filters()
-    button_all = types.InlineKeyboardButton('Общая рассылка', callback_data='Общая')
-    button_cancel = types.InlineKeyboardButton('Отмена', callback_data='Отмена')
+    button_all = types.InlineKeyboardButton(
+        'Общая рассылка',
+        callback_data='Общая'
+    )
+    button_cancel = types.InlineKeyboardButton(
+        'Отмена',
+        callback_data='Отмена'
+    )
     keyboard_choosen.add(button_all, button_cancel)
-    await message.answer('Выберите категорию по которой хотите сделать рассылку', reply_markup=keyboard_choosen)
+    await message.answer(
+        'Выберите категорию по которой хотите сделать рассылку',
+        reply_markup=keyboard_choosen
+    )
 
 
 async def choose_category_admin(callback_query: types.CallbackQuery, state: FSMContext):
@@ -148,7 +184,10 @@ async def choose_category_admin(callback_query: types.CallbackQuery, state: FSMC
         text = f'Общая рассылка\n{text.get("text")}'
         users_list = await db.get_users_list_to_distribute_for_all()
         if users_list:
-            keyboard = await button_aggree(text='Откликнуться', call='response_app')
+            keyboard = await button_aggree(
+                text='Откликнуться',
+                call='response_app'
+            )
             try:
                 for user in users_list:
                     if await send_message_async(user, text, keyboard):
@@ -158,19 +197,28 @@ async def choose_category_admin(callback_query: types.CallbackQuery, state: FSMC
                     await asyncio.sleep(0.1)
             finally:
                 for admin in admin_list:
-                    await bot_send_message(admin,
-                                           f'Рассылка по категории {type} закончена\n'
-                                           f'Количество людей получивших рассылку: {count}\n'
-                                           f'Возникшие ошибки: {error}'
-                                           )
+                    await bot_send_message(
+                        admin,
+                        f'Рассылка по категории {type} закончена\n'
+                        f'Количество людей получивших рассылку: {count}\n'
+                        f'Возникшие ошибки: {error}'
+                        )
                     await asyncio.sleep(1)
         else:
-            await bot_send_message(user_id, 'Пользователи для общей рассылки не найдены')
+            await bot_send_message(
+                user_id,
+                'Пользователи для общей рассылки не найдены'
+            )
     elif type != 'Отмена' and type != 'Общая':
         text = f'{type}\n{text.get("text")}'
-        users_list = await db.get_users_list_to_distribute_by_category(category=type)
+        users_list = await db.get_users_list_to_distribute_by_category(
+            category=type
+        )
         if users_list:
-            keyboard = await button_aggree(text='Откликнуться', call='response_app')
+            keyboard = await button_aggree(
+                text='Откликнуться',
+                call='response_app'
+            )
             try:
                 for user in users_list:
                     if await send_message_async(user, text, keyboard):
@@ -180,14 +228,18 @@ async def choose_category_admin(callback_query: types.CallbackQuery, state: FSMC
                     await asyncio.sleep(0.1)
             finally:
                 for admin in admin_list:
-                    await bot_send_message(admin,
-                                           f'Рассылка по категории {type} закончена\n'
-                                           f'Количество людей получивших рассылку: {count}\n'
-                                           f'Возникшие ошибки: {error}'
-                                           )
+                    await bot_send_message(
+                        admin,
+                        f'Рассылка по категории {type} закончена\n'
+                        f'Количество людей получивших рассылку: {count}\n'
+                        f'Возникшие ошибки: {error}'
+                        )
                     await asyncio.sleep(1)
         else:
-            await bot_send_message(user_id, 'Пользователи с данной категорией не найдены')
+            await bot_send_message(
+                user_id,
+                'Пользователи с данной категорией не найдены'
+            )
 
 
 @rate_limited(27, 60)
@@ -207,20 +259,34 @@ async def response(callback_query: types.CallbackQuery, state: FSMContext):
         if callback_query.from_user.username is not None:
             url = f'https://t.me/{callback_query.from_user.username}'
         else:
-            url = f'<a href="tg://user?id={user_id}">Ссылка на чат с пользователем</a>'
-        await create_lead(name, surname, user_id, text, telephone_number, category)
-        user_info = f'Откликнулся(ась): {name} {surname}\nНомер телефона: {telephone_number}\n{url}\n\nТекст рассылки: {text}'
+            url = f'<a href="tg://user?id={user_id}"' \
+                  f'>Ссылка на чат с пользователем</a>'
+        await create_lead(
+            name, surname, user_id,
+            text, telephone_number, category
+        )
+        user_info = f'Откликнулся(ась): {name} {surname}' \
+                    f'\nНомер телефона: {telephone_number}' \
+                    f'\n{url}' \
+                    f'\n\nТекст рассылки: {text}'
         for admin in admin_list:
             await send_message_admin(admin, user_info)
             await asyncio.sleep(random.choice([1, 2, 3]))
     else:
-        await bot_send_message(user_id, 'Вы были заблокированы.\nСвяжитесь с администратором для разблокировки')
+        await bot_send_message(
+            user_id,
+            'Вы были заблокированы.'
+            '\nСвяжитесь с администратором для разблокировки'
+        )
 
 
 async def change_info(message: types.Message, state: FSMContext):
     await UserStates.choose_change.set()
     keyboard = await user_info_change()
-    await message.answer(text='Выберите кнопку, соответствующую вашему запросу.', reply_markup=keyboard)
+    await message.answer(
+        text='Выберите кнопку, соответствующую вашему запросу.',
+        reply_markup=keyboard
+    )
 
 
 async def answer_to_name(call: types.CallbackQuery, state: FSMContext):
@@ -281,15 +347,22 @@ async def category_count(call: types.CallbackQuery, state: FSMContext):
     await UserStates.vacancy.set()
     await bot_send_message(
         user_id,
-        text='Сколько категорий Вас интересует? Можно выбрать от 1 до 6 или все категории.'
-             '\nАстрологи\nПсихологи\nСтилисты\nЮристы\nНутрициологи\nКосметологи\nВрачи\n'
-             'Тренеры\nДизайнеры\nФинансисты\nМаркетологи',
+        text='Сколько категорий Вас интересует? '
+             'Можно выбрать от 1 до 6 или все категории.'
+             '\nАстрологи\nПсихологи\nСтилисты'
+             '\nЮристы\nНутрициологи\nКосметологи'
+             '\nВрачи\nТренеры\nДизайнеры\nФинансисты'
+             '\nМаркетологи',
         reply_markup=keyboard
     )
 
 
 async def block_user(message: types.Message, state: FSMContext):
-    await model(message, 'Введите id пользователя для блокировки', AdminStates.block)
+    await model(
+        message,
+        'Введите id пользователя для блокировки',
+        AdminStates.block
+    )
 
 
 async def blocked(message: types.Message, state: FSMContext):
@@ -298,7 +371,10 @@ async def blocked(message: types.Message, state: FSMContext):
     try:
         user = await db.block_user(id[0])
         if user:
-            await message.answer('Пользователь с данным id заблокирован.\nДля разблокировки введите команду /unblock')
+            await message.answer(
+                'Пользователь с данным id заблокирован.'
+                '\nДля разблокировки введите команду /unblock'
+            )
         else:
             await message.answer('Пользователь с данным id не найден.')
     except InvalidTextRepresentationError:
@@ -315,7 +391,11 @@ async def model(message: types.Message, word: str, station, keyboard=None):
 
 
 async def unblock_user(message: types.Message, state: FSMContext):
-    await model(message, 'Введите id пользователя для разблокировки', AdminStates.unblock)
+    await model(
+        message,
+        'Введите id пользователя для разблокировки',
+        AdminStates.unblock
+    )
 
 
 async def unblocked(message: types.Message, state: FSMContext):
@@ -324,7 +404,10 @@ async def unblocked(message: types.Message, state: FSMContext):
     try:
         user = await db.unblock_user(id[0])
         if user:
-            await message.answer('Пользователь с данным id разблокирован.\nДля блокировки введите команду /block')
+            await message.answer(
+                'Пользователь с данным id разблокирован.'
+                '\nДля блокировки введите команду /block'
+            )
         else:
             await message.answer('Пользователь с данным id не найден.')
     except InvalidTextRepresentationError:
@@ -334,7 +417,12 @@ async def unblocked(message: types.Message, state: FSMContext):
 
 
 async def status_user(message: types.Message, state: FSMContext):
-    await model(message, 'Введите id пользователя для уточнения статуса (заблокирован/разблокирован)', AdminStates.status)
+    await model(
+        message,
+        'Введите id пользователя для уточнения статуса '
+        '(заблокирован/разблокирован)',
+        AdminStates.status
+    )
 
 
 async def get_status(message: types.Message, state: FSMContext):
@@ -346,7 +434,9 @@ async def get_status(message: types.Message, state: FSMContext):
             if status is True:
                 await message.answer('Пользователь с данным id заблокирован.')
             elif status is False:
-                await message.answer('Пользователь с данным id не заблокирован.')
+                await message.answer(
+                    'Пользователь с данным id не заблокирован.'
+                )
         else:
             await message.answer('Пользователь с данным id не найден.')
     except InvalidTextRepresentationError:
@@ -358,12 +448,19 @@ async def get_status(message: types.Message, state: FSMContext):
 async def all_commands(message: types.Message):
     user_id = message.from_user.id
     if user_id in admin_list:
-        await message.answer('/send - выполнить рассылку по выбранным категориям\n'
-                             '/block - заблокировать пользователя по id\n'
-                             '/unblock - разблокировать пользователя по id\n'
-                             '/status - узнать статус блокировки пользователя\n'
-                             '/delete - удалить свои данные из базы данных, что бы не получать рассылку\n'
-                             '/count - узнать кол-во подписанных пользователей')
+        await message.answer('/send - выполнить рассылку '
+                             'по выбранным категориям\n'
+                             '/block - заблокировать '
+                             'пользователя по id\n'
+                             '/unblock - разблокировать '
+                             'пользователя по id\n'
+                             '/status - узнать статус '
+                             'блокировки пользователя\n'
+                             '/delete - удалить свои данные '
+                             'из базы данных, что бы не получать рассылку\n'
+                             '/count - узнать кол-во '
+                             'подписанных пользователей'
+                             )
 
 
 async def delete(message: types.Message):
@@ -378,10 +475,20 @@ async def get_users_count(message: types.Message, state: FSMContext):
     if user_id in admin_list:
         await AdminStates.count_users.set()
         keyboard = await get_filters()
-        button_all = types.InlineKeyboardButton('Общее кол-во пользователей', callback_data='Total')
-        button_cancel = types.InlineKeyboardButton('Отмена', callback_data='Отмена')
+        button_all = types.InlineKeyboardButton(
+            'Общее кол-во пользователей',
+            callback_data='Total'
+        )
+        button_cancel = types.InlineKeyboardButton(
+            'Отмена',
+            callback_data='Отмена'
+        )
         keyboard.add(button_all, button_cancel)
-        await message.answer('Выберите категорию по которой хотите узнать кол-во зарегестрированных пользоватлей', reply_markup=keyboard)
+        await message.answer(
+            'Выберите категорию по которой хотите узнать '
+            'кол-во зарегестрированных пользоватлей',
+            reply_markup=keyboard
+        )
 
 
 async def choose_count_admin(callback_query: types.CallbackQuery, state: FSMContext):
@@ -391,8 +498,14 @@ async def choose_count_admin(callback_query: types.CallbackQuery, state: FSMCont
     type: str = callback_query.data
     if type == 'Total':
         count = await db.cout_all()
-        await bot_send_message(user_id, f'Общее кол-во подписанных пользователей: {count}')
+        await bot_send_message(
+            user_id,
+            f'Общее кол-во подписанных пользователей: {count}'
+        )
     elif type != 'Отмена' and type != 'Total':
         count = await db.cout_category(type)
-        await bot_send_message(user_id, f'Кол-во подписанных пользователей по категории "{type}": {count}')
-
+        await bot_send_message(
+            user_id,
+            f'Кол-во подписанных пользователей '
+            f'по категории "{type}": {count}'
+        )

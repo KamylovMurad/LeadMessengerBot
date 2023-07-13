@@ -12,7 +12,10 @@ class Lead(_Lead):
     category = custom_field.TextCustomField('Категория')
 
 
-async def create_lead(name='ivan', surname='ivanov', user_id=123, text='qefq', tel_number='212412', category='Общая рассылка', count=0):
+async def create_lead(
+        name='ivan', surname='ivanov',
+        user_id=123, text='qefq',
+        tel_number='212412', category='Общая рассылка', count=0):
     try:
         lead_name = f'{name} {surname}'
         created_lead = Lead.objects.create({'name': lead_name})
@@ -27,7 +30,10 @@ async def create_lead(name='ivan', surname='ivanov', user_id=123, text='qefq', t
         if count == 0:
             await asyncio.sleep(2)
             count += 1
-            return await create_lead(name, surname, user_id, text, tel_number, category, count)
+            return await create_lead(
+                name, surname, user_id,
+                text, tel_number, category, count
+            )
         else:
             return
     except Exception:
